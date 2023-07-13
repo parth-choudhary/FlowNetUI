@@ -1,95 +1,137 @@
-import Image from 'next/image'
+"use client";
+
 import styles from './page.module.css'
+import * as fcl from "@onflow/fcl";
+import { useEffect, useState } from "react";
+import "../flow/config";
+import { styled } from 'styled-components';
+import Button from 'rsuite/Button';
+import { Input } from 'rsuite';
+import { RadioTile, RadioTileGroup } from 'rsuite';
+import { Icon } from '@rsuite/icons';
+import { VscLock, VscWorkspaceTrusted, VscRepo } from 'react-icons/vsc';
+import Loader from 'rsuite/Loader';
+import Image from 'next/image';
+
+
 
 export default function Home() {
+
+  const [user, setUser] = useState({loggedIn: null, addr: null})
+  const [nodeList, setNodeList] = useState([{name: '123', addr: '123'}, {name: '123', addr: '123'}, {name: '123', addr: '123'}, {name: '123', addr: '123'}]);
+  const [node, setNode] = useState(''); // nodeList[0
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const [value, setValue] = useState('');
+  const [prompt, setPrompt] = useState('');
+  const [showImage, setShowImage] = useState(false);
+  const [image, setImage] = useState('https://dummyimage.com/250/ffffff/000000');
+
+  useEffect(() => {fcl.currentUser.subscribe(setUser)}, []);
+
+  useEffect(() => {
+    //fetch nodelist here and set to setNodeList
+    // TODO: fetch nodelist from server
+  }, [])
+  console.log(user);
+
+  const nodeSelectionList = nodeList.map((node: any, i) => {
+    console.log(node);
+    return (
+      <RadioTile style={{width: '80vw'}} key={`node-list-${i}`}  icon={<Icon as={VscWorkspaceTrusted} />} label={`${node.name}`} value={`${node.name}-${i}`}>
+        Address: {node.addr}
+      </RadioTile>      
+    )
+  })
+
+  const logout = () => {
+    fcl.unauthenticate();
+    setProcessing(false);
+    setPrompt('');
+    setValue('');
+    setSelectedNode(null);
+    setNode('');
+    setShowImage(false);
+  }
+
+  const anotherPrompt = () => {
+    setProcessing(false);
+    setPrompt('');
+    setValue('');
+    setSelectedNode(null);
+    setNode('');
+    setShowImage(false);
+  }
+
+  const AuthedState = () => {
+    return (
+      <div style={{display: 'flex', flexDirection: 'column'}}>
+        <Button className='cta-button hover' onClick={logout}>LOGOUT</Button>
+        <div style={{fontSize: 12}}>Address {user? `${user.addr}` : "No Address"}</div>
+      </div>
+    )
+  }
+
+  const UnauthenticatedState = () => {
+    return (
+      <div style={{display: 'flex'}}>
+        <Button className='hover cta-button' style={{margin: 4}} onClick={fcl.logIn}>LOG IN</Button>
+      </div>
+    )
+  }
+
+  const triggerProcessingDone = () => {
+    setTimeout(() => {
+      setProcessing(false);
+      setShowImage(true);
+    }, 2000)
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div>
+      <div style={{display: 'flex', justifyContent: 'space-between', padding: 24}}>
+        <h1>Timbersaw</h1>
+
+        <div>              
+          {user.loggedIn
+            ? <AuthedState />
+            : <UnauthenticatedState />
+          }
         </div>
       </div>
+      <main className={styles.main}>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+      {user.loggedIn ? <>    
+          {processing && <><Loader style={{marginTop: 200}} size="lg" content="Processing" /></>}
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+          {!processing && <>
+            {prompt != '' && !selectedNode ? <>
+              <div style={{display: 'flex', alignSelf: 'start', flexDirection: 'column'}}>
+                <h4 style={{margin: 4, fontSize: 18}}>Select Node:</h4>
+                <RadioTileGroup onChange={(e) => setNode(e.toString())} defaultValue="private" aria-label="Visibility Level">
+                  {nodeSelectionList}
+                </RadioTileGroup>
+                <Button className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 16, fontWeight: 600,  width: '100%', background: '#0353E9'}} onClick={() => {setProcessing(true); setSelectedNode(node); triggerProcessingDone();}}>Select</Button>
+              </div>
+              </> : <h4 style={{marginTop: 100, fontSize: 22, fontWeight: 400, display: 'flex', alignSelf: 'start'}}>
+                {/* Selected Node: <span style={{marginLeft: 8, fontWeight: 800}}>{selectedNode}</span> */}
+              </h4>}
+          </>}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+          {prompt == '' && !processing &&  user.loggedIn && <div style={{marginTop: 10, width: '100%'}}>
+            <Input as="textarea" rows={3} placeholder="Enter prompt..." onChange={(value) => {setValue(value)}}/>
+            <Button onClick={() => {setPrompt(value)}} className='hover' appearance="primary" color="yellow" style={{fontSize: 20,marginTop: 10, fontWeight: 600,  width: '100%', background: '#0353E9'}}>Submit</Button>
+          </div>}
+          </> : <>
+            <Button className='hover cta-button' style={{margin: 4, marginTop: 200}} onClick={fcl.logIn}>LOG IN TO PROCEED</Button>
+          </>}
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+          {showImage && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}>
+              <Image alt='' width='400' height="400" src={image} />
+              <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#0353E9'}}>Another Prompt</Button>
+            </div>
+          }
+      </main>
+    </div>
   )
 }

@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@onflow/fcl": "^1.4.1",
+    "@rsuite/icons": "^1.0.2",
     "@types/node": "20.4.2",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.7",
@@ -17,6 +19,9 @@
     "next": "13.4.9",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-icons": "^4.10.1",
+    "rsuite": "^5.37.0",
+    "styled-components": "^6.0.4",
     "typescript": "5.1.6"
   }
 }
