@@ -4,12 +4,11 @@ import styles from './page.module.css'
 import * as fcl from "@onflow/fcl";
 import { useEffect, useState } from "react";
 import "../flow/config";
-import { styled } from 'styled-components';
 import Button from 'rsuite/Button';
 import { Input } from 'rsuite';
 import { RadioTile, RadioTileGroup } from 'rsuite';
 import { Icon } from '@rsuite/icons';
-import { VscLock, VscWorkspaceTrusted, VscRepo } from 'react-icons/vsc';
+import {VscWorkspaceTrusted} from 'react-icons/vsc';
 import Loader from 'rsuite/Loader';
 import Image from 'next/image';
 
@@ -44,8 +43,8 @@ export default function Home() {
     )
   })
 
-  const logout = () => {
-    fcl.unauthenticate();
+  const logoutInternal = () => {
+    // fcl.unauthenticate();
     setProcessing(false);
     setPrompt('');
     setValue('');
@@ -63,23 +62,6 @@ export default function Home() {
     setShowImage(false);
   }
 
-  const AuthedState = () => {
-    return (
-      <div style={{display: 'flex', flexDirection: 'column'}}>
-        <Button className='cta-button hover' onClick={logout}>LOGOUT</Button>
-        <div style={{fontSize: 12}}>Address {user? `${user.addr}` : "No Address"}</div>
-      </div>
-    )
-  }
-
-  const UnauthenticatedState = () => {
-    return (
-      <div style={{display: 'flex'}}>
-        <Button className='hover cta-button' style={{margin: 4}} onClick={fcl.logIn}>LOG IN</Button>
-      </div>
-    )
-  }
-
   const triggerProcessingDone = () => {
     setTimeout(() => {
       setProcessing(false);
@@ -87,18 +69,12 @@ export default function Home() {
     }, 2000)
   };
 
-  return (
-    <div>
-      <div style={{display: 'flex', justifyContent: 'space-between', padding: 24}}>
-        <h1>Timbersaw</h1>
+  useEffect(() => {
+    if(!user.loggedIn) logoutInternal();
+  }, [user]);
 
-        <div>              
-          {user.loggedIn
-            ? <AuthedState />
-            : <UnauthenticatedState />
-          }
-        </div>
-      </div>
+  return (
+    <div>      
       <main className={styles.main}>
 
       {user.loggedIn ? <>    
