@@ -11,8 +11,7 @@ import { Icon } from '@rsuite/icons';
 import {VscWorkspaceTrusted} from 'react-icons/vsc';
 import Loader from 'rsuite/Loader';
 import Image from 'next/image';
-
-
+import Ticker from 'react-ticker'
 
 export default function Home() {
 
@@ -25,6 +24,8 @@ export default function Home() {
   const [prompt, setPrompt] = useState('');
   const [showImage, setShowImage] = useState(false);
   const [image, setImage] = useState('https://dummyimage.com/250/ffffff/000000');
+  const [images, setImages] = useState([{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'}]);  
+
 
   useEffect(() => {fcl.currentUser.subscribe(setUser)}, []);
 
@@ -73,9 +74,22 @@ export default function Home() {
     if(!user.loggedIn) logoutInternal();
   }, [user]);
 
+  const gallery = images.map((image, i) => {
+    return (
+      <div key={i} className="responsive">
+        <div className="gallery">
+          <a target="_blank" href="img_5terre.jpg">
+            <Image src={image.link} alt="Cinque Terre" width={600} height={400} />
+          </a>
+          <div className="desc">{image.description}</div>
+        </div>
+      </div>
+    )});
+
   return (
     <div>      
       <main className={styles.main}>
+        <div id="globeViz" style={{maxWidth: 200, maxHeight: 200}}></div>
 
       {user.loggedIn ? <>    
           {processing && <><Loader style={{marginTop: 200}} size="lg" content="Processing" /></>}
@@ -87,7 +101,7 @@ export default function Home() {
                 <RadioTileGroup onChange={(e) => setNode(e.toString())} defaultValue="private" aria-label="Visibility Level">
                   {nodeSelectionList}
                 </RadioTileGroup>
-                <Button className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 16, fontWeight: 600,  width: '100%', background: '#0353E9'}} onClick={() => {setProcessing(true); setSelectedNode(node); triggerProcessingDone();}}>Select</Button>
+                <Button className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 16, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}} onClick={() => {setProcessing(true); setSelectedNode(node); triggerProcessingDone();}}>Select</Button>
               </div>
               </> : <h4 style={{marginTop: 100, fontSize: 22, fontWeight: 400, display: 'flex', alignSelf: 'start'}}>
                 {/* Selected Node: <span style={{marginLeft: 8, fontWeight: 800}}>{selectedNode}</span> */}
@@ -95,19 +109,38 @@ export default function Home() {
           </>}
 
           {prompt == '' && !processing &&  user.loggedIn && <div style={{marginTop: 10, width: '100%'}}>
-            <Input as="textarea" rows={3} placeholder="Enter prompt..." onChange={(value) => {setValue(value)}}/>
-            <Button onClick={() => {setPrompt(value)}} className='hover' appearance="primary" color="yellow" style={{fontSize: 20,marginTop: 10, fontWeight: 600,  width: '100%', background: '#0353E9'}}>Submit</Button>
+            <div style={{fontSize: 24, marginBottom: 12}}>Please enter a prompt to create a AI generation</div>
+            <Input as="textarea" rows={3} placeholder="Please enter prompt..." onChange={(value) => {setValue(value)}}/>
+            <Button onClick={() => {setPrompt(value)}} className='hover' appearance="primary" color="yellow" style={{fontSize: 20, padding: 12, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Submit</Button>
           </div>}
           </> : <>
-            <Button className='hover cta-button' style={{margin: 4, marginTop: 200}} onClick={fcl.logIn}>LOG IN TO PROCEED</Button>
+            <Button className='hover cta-button' style={{margin: 4, marginTop: 200, padding: 12, paddingLeft: 32, paddingRight: 32}} onClick={fcl.logIn}>LOG IN TO PROCEED</Button>
           </>}
 
           {showImage && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}>
               <Image alt='' width='400' height="400" src={image} />
-              <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#0353E9'}}>Another Prompt</Button>
+              <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Another Prompt</Button>
             </div>
           }
       </main>
+      <Ticker offset="run-in" speed={5} >
+          {({ index: any }) => (
+              <>
+                <div style={{ whiteSpace: "nowrap", display: 'flex', margin: 1 }}>
+                  {gallery}
+                </div>
+              </>
+          )}
+        </Ticker>
+        <Ticker offset="run-in" speed={5} direction="toRight" >
+          {({ index: any }) => (
+              <>
+                <div style={{ whiteSpace: "nowrap", display: 'flex', margin: 1 }}>
+                  {gallery}
+                </div>
+              </>
+          )}
+        </Ticker>
     </div>
   )
 }

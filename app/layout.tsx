@@ -1,7 +1,7 @@
 "use client";
 
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Josefin_Sans } from 'next/font/google'
 import 'rsuite/dist/rsuite.min.css';
 import './globals.css'
 import { useEffect, useState } from 'react';
@@ -9,7 +9,7 @@ import * as fcl from "@onflow/fcl";
 import Button from 'rsuite/Button';
 import Link from 'next/link';
 
-const inter = Inter({ subsets: ['latin'] })
+const dosis = Josefin_Sans({ subsets: ['latin'] })
 
 const metadata: Metadata = {
   title: 'Flow AI',
@@ -32,7 +32,7 @@ export default function RootLayout({
   const AuthedState = () => {
     return (
       <div style={{display: 'flex', flexDirection: 'column'}}>
-        <Button className='cta-button hover' onClick={logout}>LOGOUT</Button>
+        <Button style={{padding: 12, paddingLeft: 32, paddingRight: 32}} className='cta-button hover' onClick={logout}>LOGOUT</Button>
         <div style={{fontSize: 12}}>Address {user? `${user.addr}` : "No Address"}</div>
       </div>
     )
@@ -41,19 +41,22 @@ export default function RootLayout({
   const UnauthenticatedState = () => {
     return (
       <div style={{display: 'flex'}}>
-        <Button className='hover cta-button' style={{margin: 4}} onClick={fcl.logIn}>LOG IN</Button>
+        <Button className='hover cta-button' style={{margin: 4, padding: 12, paddingLeft: 32, paddingRight: 32}} onClick={fcl.logIn}>LOG IN</Button>
       </div>
     )
   }
 
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <head>
+        <title>Flow AI</title>
+      </head>
+      <body className={dosis.className}>
         <>
         <div style={{display: 'flex', justifyContent: 'space-between', padding: 24}}>
           <div style={{display: 'flex', justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-            <Link href="/"><h1>Timbersaw</h1></Link>
-            <Link href="/recent" style={{marginLeft: 48, fontSize: 16}}>Recent Generations</Link>
+            <Link href="/"><h1 style={{color: 'black', fontWeight: 700}}>FLOW AI</h1></Link>
+            <Link href="/recent" style={{marginLeft: 48, fontSize: 16, color: 'black'}}>Recent Generations</Link>
           </div>
 
 

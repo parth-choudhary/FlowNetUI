@@ -229,5 +229,10 @@
   }
 }
 
+.rs-radio-tile:hover {
+  border-color: #F9BDBE!important;
+  border: 2px solid #F9BDBE!important;
+}
+
 
 
