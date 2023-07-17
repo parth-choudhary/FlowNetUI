@@ -48,8 +48,8 @@ export default function Home() {
     setProcessing(true);
     const result = await fcl.mutate({
       cadence: `
-      import FlowNet from 0xa63112fad5c0e684
-      import FlowNetToken from 0xa63112fad5c0e684
+      import FlowNet from 0xd868d023029053e1
+      import FlowNetToken from 0xd868d023029053e1
       import FungibleToken from 0x9a0766d93b6608b7
 
 
@@ -89,12 +89,12 @@ export default function Home() {
     const result = await fcl.mutate({
       cadence: `
       import MetadataViews from 0x631e88ae7f1d7c20
-      import FlowNet from 0xa63112fad5c0e684
-      import FlowNetToken from 0xa63112fad5c0e684
+      import FlowNet from 0xd868d023029053e1
+      import FlowNetToken from 0xd868d023029053e1
       import FungibleToken from 0x9a0766d93b6608b7
-      import NodeNFT from 0xa63112fad5c0e684
+      import NodeNFT from 0xd868d023029053e1
       import NonFungibleToken from 0x631e88ae7f1d7c20
-      import InferenceNFT from 0xa63112fad5c0e684
+      import InferenceNFT from 0xd868d023029053e1
 
 
       transaction(){
@@ -163,7 +163,7 @@ export default function Home() {
   const fetchImages = async () => {
     const result = await fcl.query({
       cadence: `
-        import FlowNet from 0xa63112fad5c0e684
+        import FlowNet from 0xd868d023029053e1
         pub fun main(): {UInt64: FlowNet.Response} {
             return FlowNet.getResponses()
         }
@@ -189,7 +189,7 @@ export default function Home() {
   const getImageRatings = async () => {
     const result = await fcl.query({
       cadence: `
-        import FlowNet from 0xa63112fad5c0e684
+        import FlowNet from 0xd868d023029053e1
 
         pub fun main(address: Address): {UInt64: FlowNet.Rating} {
             return FlowNet.getAllRatings()
@@ -203,7 +203,7 @@ export default function Home() {
   const fetchNodes = async () => {
     const result = await fcl.query({
       cadence: `
-        import FlowNet from 0xa63112fad5c0e684
+        import FlowNet from 0xd868d023029053e1
 
         pub fun main(): {Address: FlowNet.Responder} {
             return FlowNet.getResponders()
