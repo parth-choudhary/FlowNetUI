@@ -26,6 +26,7 @@ export default function Home() {
   const [image, setImage] = useState('https://dummyimage.com/250/ffffff/000000');
   const [images, setImages] = useState([{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'}]);  
   const [txid, setTxid] = useState(null);
+  const [rating, setRating] = useState(0);
 
   useEffect(() => {
     if(txid){
@@ -85,6 +86,80 @@ export default function Home() {
     console.log(result); // 
   };
 
+  const rateInference = async () => {
+    setProcessing(true);
+    const result = await fcl.mutate({
+      cadence: `
+      import MainContractV2 from 0x0fb46f70bfa68d94
+      import ExampleToken from 0x0fb46f70bfa68d94
+      import FungibleToken from 0x9a0766d93b6608b7
+      import ExampleNFT from 0x0fb46f70bfa68d94
+      import NonFungibleToken from 0x631e88ae7f1d7c20
+      import InferenceNFT from 0x0fb46f70bfa68d94
+
+
+      transaction(){ //type: String, url: String
+
+          // The Vault resource that holds the tokens that are being transferred
+          // let reciever: @ExampleToken.Vault
+          let vault: Capability //<&ExampleToken.Vault{FungibleToken.Receiver}>
+          /// Reference to the Fungible Token Receiver of the recipient
+          // let tokenProvider: &{FungibleToken.Provider}
+          let tokenReciever: &{FungibleToken.Receiver}
+          let NFTRecievingCapability: &{NonFungibleToken.CollectionPublic}
+          let minter: &ExampleToken.Minter
+
+          let senderVault: Capability<&ExampleToken.Vault>
+
+          let address: Address
+
+          prepare(signer: AuthAccount){
+
+              // self.sender <- signer.borrow<&ExampleToken.Vault>(from: ExampleToken.VaultStoragePath)!.withdraw(amount: UFix64(1)) as! @ExampleToken.Vault
+
+              // Get the account of the recipient and borrow a reference to their receiver
+              var account = getAccount(0xf8d6e0586b0a20c7)
+              // self.tokenProvider = account
+              //     .getCapability(ExampleToken.VaultStoragePath)
+              //     .borrow<&{FungibleToken.Provider}>()
+              //     ?? panic("Unable to borrow provider reference")
+
+              self.senderVault = signer.getCapability<&ExampleToken.Vault>(/private/exampleTokenVault)
+
+
+              self.tokenReciever = signer
+                  .getCapability(ExampleToken.ReceiverPublicPath)
+                  .borrow<&{FungibleToken.Receiver}>()
+                  ?? panic("Unable to borrow receiver reference")
+
+              self.vault = signer.getCapability(ExampleToken.ReceiverPublicPath)
+
+              self.NFTRecievingCapability = getAccount(signer.address).getCapability(InferenceNFT.CollectionPublicPath) 
+                              .borrow<&InferenceNFT.Collection{NonFungibleToken.CollectionPublic}>()
+                              ?? panic("Failed to get User's collection.")
+
+              // Borrow a reference to the Minter resource in storage
+              self.minter = signer.borrow<&ExampleToken.Minter>(from: ExampleToken.MinterStoragePath)
+                  ?? panic("Account does not store an object at the specified path")
+
+              self.address = signer.address
+
+          }
+          execute{
+              MainContractV2.rateInference(
+                  id: ${txid}, 
+                  rating: ${rating},
+                  minter: self.minter,
+                  receiverCapability: self.tokenReciever,
+                  rater: self.address
+              )
+          }
+      }
+      `,      
+    });
+    console.log(result); // 
+  };
+
   const fetchImages = async () => {
     const result = await fcl.query({
       cadence: `
@@ -103,6 +178,25 @@ export default function Home() {
     }
     setImages(resultArray);
   };
+
+  const getImageRatings = async () => {
+    const result = await fcl.query({
+      cadence: `
+        import MainContractV2 from 0x0fb46f70bfa68d94
+
+        pub fun main(address: Address): {UInt64: MainContractV2.Rating} {
+            // let account = getAccount(address)
+            // let vaultRef = account.getCapability(ExampleToken.VaultPublicPath)
+            //     .borrow<&ExampleToken.Vault{FungibleToken.Balance}>()
+            //     ?? panic("Could not borrow Balance reference to the Vault")
+        
+            return MainContractV2.getAllRatings()
+        }
+      `
+      });
+    console.log('images', result); // 1    
+  };
+
 
   const fetchNodes = async () => {
     const result = await fcl.query({
