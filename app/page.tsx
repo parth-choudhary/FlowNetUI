@@ -316,6 +316,7 @@ export default function Home() {
     setPrompt('');
     setValue('');
     setSelectedNode(null);
+    // @ts-ignore
     setNode('');
     setShowImage(false);
   }
@@ -325,6 +326,7 @@ export default function Home() {
     setPrompt('');
     setValue('');
     setSelectedNode(null);
+    // @ts-ignore
     setNode('');
     setShowImage(false);
   }
@@ -389,6 +391,7 @@ export default function Home() {
                   })}} defaultValue="private" aria-label="Visibility Level">
                   {nodeSelectionList}
                 </RadioTileGroup>
+                {/* @ts-ignore */}
                 <Button className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 16, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}} onClick={() => {setProcessing(true); setSelectedNode(node); startInference(); triggerProcessingDone();}}>Select</Button>
               </div>
               </> : <h4 style={{marginTop: 100, fontSize: 22, fontWeight: 400, display: 'flex', alignSelf: 'start'}}>
