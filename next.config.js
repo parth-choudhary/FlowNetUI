@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  assetPrefix: './',
+  // assetPrefix: '/',
+  output: "export",
 
     images: {
-      loader: 'akamai',
-      path: '',
+      // loader: 'akamai',
+      // path: '',
 
         remotePatterns: [
           {

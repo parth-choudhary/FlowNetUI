@@ -343,7 +343,9 @@ export default function Home() {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
     const newCount = await fetchImages();
-    setImage(images[images.length - 1].url);
+    console.log(images[images.length - 1]);
+    console.log(images);
+    setImage(images[images.length - 1].link);
   }
 
   const triggerProcessingDone = async () => {
