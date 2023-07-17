@@ -84,6 +84,80 @@ export default function Home() {
     console.log(result); // 
   };
 
+  const setupAccount = async () => {
+    setProcessing(true);
+    const result = await fcl.mutate({
+      cadence: `
+      import FungibleToken from 0x9a0766d93b6608b7
+      import FlowNetToken from 0xd868d023029053e1
+      import MetadataViews from 0x631e88ae7f1d7c20
+      import NodeNFT from 0xd868d023029053e1
+      import InferenceNFT from 0xd868d023029053e1
+      import NonFungibleToken from 0x631e88ae7f1d7c20
+
+
+      transaction () {
+
+          prepare(signer: AuthAccount) {
+              if signer.borrow<&FlowNetToken.Vault>(from: FlowNetToken.VaultStoragePath) != nil {
+                  
+              } else {
+                  signer.save(
+                      <-FlowNetToken.createEmptyVault(),
+                      to: FlowNetToken.VaultStoragePath
+                  )
+                  signer.link<&FlowNetToken.Vault{FungibleToken.Receiver}>(
+                      FlowNetToken.ReceiverPublicPath,
+                      target: FlowNetToken.VaultStoragePath
+                  )
+                  signer.link<&FlowNetToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
+                      FlowNetToken.VaultPublicPath,
+                      target: FlowNetToken.VaultStoragePath
+                  )
+              }
+
+              if signer.borrow<&NodeNFT.Collection>(from: NodeNFT.CollectionStoragePath) != nil {
+                  
+              } else {
+                  signer.save(
+                      <-NodeNFT.createEmptyCollection(),
+                      to: NodeNFT.CollectionStoragePath
+                  )
+                  signer.link<&NodeNFT.Collection{NonFungibleToken.Receiver}>(
+                      NodeNFT.CollectionPublicPath,
+                      target: NodeNFT.CollectionStoragePath
+                  )
+                  signer.link<&NodeNFT.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
+                      NodeNFT.CollectionPublicPath,
+                      target: NodeNFT.CollectionStoragePath
+                  )
+              }
+
+              if signer.borrow<&InferenceNFT.Collection>(from: InferenceNFT.CollectionStoragePath) != nil {
+                  
+              } else {
+                  log("Create a new InferenceNFT EmptyCollection and put it in storage")
+                  signer.save(
+                      <-InferenceNFT.createEmptyCollection(),
+                      to: InferenceNFT.CollectionStoragePath
+                  )
+                  signer.link<&InferenceNFT.Collection{NonFungibleToken.Receiver}>(
+                      InferenceNFT.CollectionPublicPath,
+                      target: InferenceNFT.CollectionStoragePath
+                  )
+                  signer.link<&NodeNFT.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
+                      NodeNFT.CollectionPublicPath,
+                      target: NodeNFTllectionStoragePath
+                  )
+              }
+              
+          }
+      }
+      `,      
+    });
+    console.log(result); // 
+  };
+
   const rateInference = async () => {
     setProcessing(true);
     const result = await fcl.mutate({
@@ -226,6 +300,7 @@ export default function Home() {
 
   useEffect(() => {
     //fetch nodelist here and set to setNodeList
+    setupAccount()
     fetchNodes();
     fetchImages();
   }, [])
