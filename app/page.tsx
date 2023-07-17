@@ -12,6 +12,8 @@ import {VscWorkspaceTrusted} from 'react-icons/vsc';
 import Loader from 'rsuite/Loader';
 import Image from 'next/image';
 import Ticker from 'react-ticker'
+import { Rate } from 'rsuite';
+
 
 export default function Home() {
 
@@ -24,7 +26,8 @@ export default function Home() {
   const [prompt, setPrompt] = useState('');
   const [showImage, setShowImage] = useState(false);
   const [image, setImage] = useState('https://dummyimage.com/250/ffffff/000000');
-  const [images, setImages] = useState([{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'}]);  
+  // const [images, setImages] = useState([{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'}]);  
+  const [images, setImages] = useState([] as any);  
   const [txid, setTxid] = useState(null);
   const [rating, setRating] = useState(0);
 
@@ -45,41 +48,36 @@ export default function Home() {
     setProcessing(true);
     const result = await fcl.mutate({
       cadence: `
-      import MainContract from 0xf8d6e0586b0a20c7
-      import ExampleToken from 0xf8d6e0586b0a20c7
-      import FungibleToken from "FungibleToken"
+      import FlowNet from 0xa63112fad5c0e684
+      import FlowNetToken from 0xa63112fad5c0e684
+      import FungibleToken from 0x9a0766d93b6608b7
 
-      transaction(recipient: Address){ //type: String, url: String
 
-          let sender: @ExampleToken.Vault
-          let vault: Capability //<&ExampleToken.Vault{FungibleToken.Receiver}>
-          let tokenReceiver: &{FungibleToken.Receiver}
-
+      transaction(responder: Address, prompt: String, offer: UInt64){
+          let sender: @FlowNetToken.Vault
+          let vault: Capability
+          let address: Address
 
           prepare(signer: AuthAccount){
 
-              self.sender <- signer.borrow<&ExampleToken.Vault>(from: ExampleToken.VaultStoragePath)!.withdraw(amount: UFix64(1)) as! @ExampleToken.Vault
+              self.sender <- signer.borrow<&FlowNetToken.Vault>(from: FlowNetToken.VaultStoragePath)!.withdraw(amount: UFix64(offer)) as! @FlowNetToken.Vault
 
-              var account = getAccount(0xf8d6e0586b0a20c7)
-              self.tokenReceiver = account
-                  .getCapability(ExampleToken.ReceiverPublicPath)
-                  .borrow<&{FungibleToken.Receiver}>()
-                  ?? panic("Unable to borrow receiver reference")
+              self.vault = signer.getCapability(FlowNetToken.ReceiverPublicPath)
 
-              self.vault = signer.getCapability(ExampleToken.ReceiverPublicPath)
-
+              self.address = signer.address
           }
+
           execute{
-              MainContract.requestInference(
-                  prompt: "${prompt}", 
+              FlowNet.requestInference(
+                  prompt:  "${prompt}", 
                   requestor: ${user.addr},
                   responder: ${node.addr},
-                  offer: 1,
-                  requestorVault: <- self.sender,
-                  receiverCapability: self.tokenReceiver
+                  offer: offer,
+                  requestorVault: <- self.sender
               )
+
           }
-      }
+      }           
       `,
       args: (arg, t) => [],
     });
@@ -90,66 +88,68 @@ export default function Home() {
     setProcessing(true);
     const result = await fcl.mutate({
       cadence: `
-      import MainContractV2 from 0x0fb46f70bfa68d94
-      import ExampleToken from 0x0fb46f70bfa68d94
+      import MetadataViews from 0x631e88ae7f1d7c20
+      import FlowNet from 0xa63112fad5c0e684
+      import FlowNetToken from 0xa63112fad5c0e684
       import FungibleToken from 0x9a0766d93b6608b7
-      import ExampleNFT from 0x0fb46f70bfa68d94
+      import NodeNFT from 0xa63112fad5c0e684
       import NonFungibleToken from 0x631e88ae7f1d7c20
-      import InferenceNFT from 0x0fb46f70bfa68d94
+      import InferenceNFT from 0xa63112fad5c0e684
 
 
-      transaction(){ //type: String, url: String
+      transaction(){
 
-          // The Vault resource that holds the tokens that are being transferred
-          // let reciever: @ExampleToken.Vault
-          let vault: Capability //<&ExampleToken.Vault{FungibleToken.Receiver}>
-          /// Reference to the Fungible Token Receiver of the recipient
-          // let tokenProvider: &{FungibleToken.Provider}
+          let vault: Capability
           let tokenReciever: &{FungibleToken.Receiver}
-          let NFTRecievingCapability: &{NonFungibleToken.CollectionPublic}
-          let minter: &ExampleToken.Minter
 
-          let senderVault: Capability<&ExampleToken.Vault>
+          let senderVault: Capability<&FlowNetToken.Vault>
 
           let address: Address
 
           prepare(signer: AuthAccount){
 
-              // self.sender <- signer.borrow<&ExampleToken.Vault>(from: ExampleToken.VaultStoragePath)!.withdraw(amount: UFix64(1)) as! @ExampleToken.Vault
+              // Return early if the account already stores a FlowNetToken Vault
+              if signer.borrow<&FlowNetToken.Vault>(from: FlowNetToken.VaultStoragePath) != nil {
+                  
+              } else {
+                  log("Create a new FlowNetToken Vault and put it in storage")
+                  // Create a new FlowNetToken Vault and put it in storage
+                  signer.save(
+                      <-FlowNetToken.createEmptyVault(),
+                      to: FlowNetToken.VaultStoragePath
+                  )
 
-              // Get the account of the recipient and borrow a reference to their receiver
-              var account = getAccount(0xf8d6e0586b0a20c7)
-              // self.tokenProvider = account
-              //     .getCapability(ExampleToken.VaultStoragePath)
-              //     .borrow<&{FungibleToken.Provider}>()
-              //     ?? panic("Unable to borrow provider reference")
+                  // Create a public capability to the Vault that only exposes
+                  // the deposit function through the Receiver interface
+                  signer.link<&FlowNetToken.Vault{FungibleToken.Receiver}>(
+                      FlowNetToken.ReceiverPublicPath,
+                      target: FlowNetToken.VaultStoragePath
+                  )
 
-              self.senderVault = signer.getCapability<&ExampleToken.Vault>(/private/exampleTokenVault)
+                  // Create a public capability to the Vault that exposes the Balance and Resolver interfaces
+                  signer.link<&FlowNetToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
+                      FlowNetToken.VaultPublicPath,
+                      target: FlowNetToken.VaultStoragePath
+                  )
+              }
 
+              self.senderVault = signer.getCapability<&FlowNetToken.Vault>(/private/exampleTokenVault)
 
               self.tokenReciever = signer
-                  .getCapability(ExampleToken.ReceiverPublicPath)
+                  .getCapability(FlowNetToken.ReceiverPublicPath)
                   .borrow<&{FungibleToken.Receiver}>()
                   ?? panic("Unable to borrow receiver reference")
 
-              self.vault = signer.getCapability(ExampleToken.ReceiverPublicPath)
+              self.vault = signer.getCapability(FlowNetToken.ReceiverPublicPath)
 
-              self.NFTRecievingCapability = getAccount(signer.address).getCapability(InferenceNFT.CollectionPublicPath) 
-                              .borrow<&InferenceNFT.Collection{NonFungibleToken.CollectionPublic}>()
-                              ?? panic("Failed to get User's collection.")
-
-              // Borrow a reference to the Minter resource in storage
-              self.minter = signer.borrow<&ExampleToken.Minter>(from: ExampleToken.MinterStoragePath)
-                  ?? panic("Account does not store an object at the specified path")
 
               self.address = signer.address
 
           }
           execute{
-              MainContractV2.rateInference(
+              FlowNet.rateInference(
                   id: ${txid}, 
                   rating: ${rating},
-                  minter: self.minter,
                   receiverCapability: self.tokenReciever,
                   rater: self.address
               )
@@ -163,9 +163,9 @@ export default function Home() {
   const fetchImages = async () => {
     const result = await fcl.query({
       cadence: `
-        import MainContract from 0x0fb46f70bfa68d94
-        pub fun main(): {UInt64: MainContract.Response} {           
-          return MainContract.getResponses()
+        import FlowNet from 0xa63112fad5c0e684
+        pub fun main(): {UInt64: FlowNet.Response} {
+            return FlowNet.getResponses()
         }
       `
       });
@@ -174,7 +174,14 @@ export default function Home() {
     const values: any = Object.values(result);
     const resultArray = [];
     for(let i = 0; i < keys.length; i++){
-      resultArray.push({link: values[i].url, description: values[i].link.split('=')[1]});
+      console.log(values[i].url, (values[i].url).includes('http'))
+      //@ts-ignore
+      const t = (values[i].url).includes('http') ? values[i].url : "https://ipfs.io/ipfs/" + values[i].url;
+      const data = (await (await fetch(t)).json());
+      const url = data.image.includes('http') ? data.image : "https://ipfs.io/ipfs/" + data.image;
+      const prompt =  data.prompt;
+      console.log(url);
+      resultArray.push({link: url, description: prompt});
     }
     setImages(resultArray);
   };
@@ -182,15 +189,10 @@ export default function Home() {
   const getImageRatings = async () => {
     const result = await fcl.query({
       cadence: `
-        import MainContractV2 from 0x0fb46f70bfa68d94
+        import FlowNet from 0xa63112fad5c0e684
 
-        pub fun main(address: Address): {UInt64: MainContractV2.Rating} {
-            // let account = getAccount(address)
-            // let vaultRef = account.getCapability(ExampleToken.VaultPublicPath)
-            //     .borrow<&ExampleToken.Vault{FungibleToken.Balance}>()
-            //     ?? panic("Could not borrow Balance reference to the Vault")
-        
-            return MainContractV2.getAllRatings()
+        pub fun main(address: Address): {UInt64: FlowNet.Rating} {
+            return FlowNet.getAllRatings()
         }
       `
       });
@@ -201,9 +203,10 @@ export default function Home() {
   const fetchNodes = async () => {
     const result = await fcl.query({
       cadence: `
-        import MainContract from 0x0fb46f70bfa68d94
-        pub fun main(): {Address: MainContract.Responder} {        
-            return MainContract.getResponders()
+        import FlowNet from 0xa63112fad5c0e684
+
+        pub fun main(): {Address: FlowNet.Responder} {
+            return FlowNet.getResponders()
         }
       `,
       // args: (arg, t) => null,
@@ -266,12 +269,12 @@ export default function Home() {
     if(!user.loggedIn) logoutInternal();
   }, [user]);
 
-  const gallery = images.map((image, i) => {
+  const gallery = images.map((image: any, i: any) => {
     return (
       <div key={i} className="responsive">
         <div className="gallery">
           <a target="_blank" href="img_5terre.jpg">
-            <Image src={image.link} alt="Cinque Terre" width={600} height={400} />
+            <Image src={image.link} alt="Cinque Terre" width={512} height={512} />
           </a>
           <div className="desc">{image.description}</div>
         </div>
@@ -310,8 +313,12 @@ export default function Home() {
           </>}
 
           {showImage && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}>
+          {/* {true && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}> */}
               <Image alt='' width='400' height="400" src={image} />
-              <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Another Prompt</Button>
+              {/* <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Another Prompt</Button> */}
+              <div style={{marginTop: 10}}>Rate the inference: </div>
+              <Rate defaultValue={3} max={10}/>
+              <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Rate</Button>
             </div>
           }
       </main>
