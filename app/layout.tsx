@@ -12,8 +12,8 @@ import Link from 'next/link';
 const dosis = Josefin_Sans({ subsets: ['latin'] })
 
 const metadata: Metadata = {
-  title: 'Flow AI',
-  description: 'Created by Xtremes',
+  title: 'FlowNet AI',
+  description: 'Created by @shashank42 and @parth',
 }
 
 export default function RootLayout({
@@ -49,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Flow AI</title>
+        <title>FlowNet AI</title>
       </head>
       <body className={dosis.className}>
         <>

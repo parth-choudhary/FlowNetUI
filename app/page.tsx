@@ -27,7 +27,7 @@ export default function Home() {
   const [showImage, setShowImage] = useState(false);
   const [image, setImage] = useState('https://dummyimage.com/250/ffffff/000000');
   // const [images, setImages] = useState([{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'},{link:'https://dummyimage.com/250/ffffff/000000', description:'some description'}]);  
-  const [images, setImages] = useState([] as any);  
+  const [images, setImages] = useState([] as any);
   const [txid, setTxid] = useState(null);
   const [rating, setRating] = useState(0);
 
@@ -46,6 +46,9 @@ export default function Home() {
 
   const startInference = async () => {
     setProcessing(true);
+
+    console.log('start inference', prompt, node.addr, user.addr)
+
     const result = await fcl.mutate({
       cadence: `
       import FlowNet from 0xd868d023029053e1
@@ -53,14 +56,14 @@ export default function Home() {
       import FungibleToken from 0x9a0766d93b6608b7
 
 
-      transaction(responder: Address, prompt: String, offer: UInt64){
+      transaction(){
           let sender: @FlowNetToken.Vault
           let vault: Capability
           let address: Address
 
           prepare(signer: AuthAccount){
 
-              self.sender <- signer.borrow<&FlowNetToken.Vault>(from: FlowNetToken.VaultStoragePath)!.withdraw(amount: UFix64(offer)) as! @FlowNetToken.Vault
+              self.sender <- signer.borrow<&FlowNetToken.Vault>(from: FlowNetToken.VaultStoragePath)!.withdraw(amount: UFix64(1.0)) as! @FlowNetToken.Vault
 
               self.vault = signer.getCapability(FlowNetToken.ReceiverPublicPath)
 
@@ -72,7 +75,7 @@ export default function Home() {
                   prompt:  "${prompt}", 
                   requestor: ${user.addr},
                   responder: ${node.addr},
-                  offer: offer,
+                  offer: 1,
                   requestorVault: <- self.sender
               )
 
@@ -127,10 +130,6 @@ export default function Home() {
                       NodeNFT.CollectionPublicPath,
                       target: NodeNFT.CollectionStoragePath
                   )
-                  signer.link<&NodeNFT.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
-                      NodeNFT.CollectionPublicPath,
-                      target: NodeNFT.CollectionStoragePath
-                  )
               }
 
               if signer.borrow<&InferenceNFT.Collection>(from: InferenceNFT.CollectionStoragePath) != nil {
@@ -144,10 +143,6 @@ export default function Home() {
                   signer.link<&InferenceNFT.Collection{NonFungibleToken.Receiver}>(
                       InferenceNFT.CollectionPublicPath,
                       target: InferenceNFT.CollectionStoragePath
-                  )
-                  signer.link<&NodeNFT.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
-                      NodeNFT.CollectionPublicPath,
-                      target: NodeNFTllectionStoragePath
                   )
               }
               
@@ -258,6 +253,7 @@ export default function Home() {
       resultArray.push({link: url, description: prompt});
     }
     setImages(resultArray);
+    return resultArray.length;
   };
 
   const getImageRatings = async () => {
@@ -300,7 +296,7 @@ export default function Home() {
 
   useEffect(() => {
     //fetch nodelist here and set to setNodeList
-    setupAccount()
+    // setupAccount();
     fetchNodes();
     fetchImages();
   }, [])
@@ -333,7 +329,23 @@ export default function Home() {
     setShowImage(false);
   }
 
-  const triggerProcessingDone = () => {
+
+  const waitForInference = async () => {
+
+    const currentCount = await fetchImages();
+    while (true) {
+      const newCount = await fetchImages();
+      if (newCount > currentCount) {
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    const newCount = await fetchImages();
+    setImage(images[images.length - 1].url);
+  }
+
+  const triggerProcessingDone = async () => {
+    await waitForInference()
     setTimeout(() => {
       setProcessing(false);
       setShowImage(true);
@@ -368,10 +380,16 @@ export default function Home() {
             {prompt != '' && !selectedNode ? <>
               <div style={{display: 'flex', alignSelf: 'start', flexDirection: 'column'}}>
                 <h4 style={{margin: 4, fontSize: 18}}>Select Node:</h4>
-                <RadioTileGroup onChange={(e) => setNode(e.toString())} defaultValue="private" aria-label="Visibility Level">
+                <RadioTileGroup onChange={(e) => {
+                  console.log("On Changed")
+                  console.log("Data : ", e.toString().split("-"))
+                  setNode({
+                    name: "Node",
+                    addr: e.toString().split("-")[0]
+                  })}} defaultValue="private" aria-label="Visibility Level">
                   {nodeSelectionList}
                 </RadioTileGroup>
-                <Button className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 16, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}} onClick={() => {setProcessing(true); setSelectedNode(node); startInference();}}>Select</Button>
+                <Button className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 16, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}} onClick={() => {setProcessing(true); setSelectedNode(node); startInference(); triggerProcessingDone();}}>Select</Button>
               </div>
               </> : <h4 style={{marginTop: 100, fontSize: 22, fontWeight: 400, display: 'flex', alignSelf: 'start'}}>
                 {/* Selected Node: <span style={{marginLeft: 8, fontWeight: 800}}>{selectedNode}</span> */}
