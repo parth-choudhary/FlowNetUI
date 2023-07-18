@@ -55,7 +55,7 @@ export default function RootLayout({
         <>
         <div style={{display: 'flex', justifyContent: 'space-between', padding: 24}}>
           <div style={{display: 'flex', justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-            <Link href="/"><h1 style={{color: 'black', fontWeight: 700}}>FLOW AI</h1></Link>
+            <Link href="/"><h1 style={{color: 'black', fontWeight: 700}}>FLOWNET AI</h1></Link>
             <Link href="/recent" style={{marginLeft: 48, fontSize: 16, color: 'black'}}>Recent Generations</Link>
           </div>
 
