@@ -152,7 +152,7 @@ export default function Home() {
                   .borrow<&{FungibleToken.Receiver}>()
                   ?? panic("Unable to borrow receiver reference")
 
-              let mintedVault <- FlowNetToken.mintTokens(amount: 100)
+              let mintedVault <- FlowNetToken.mintTokens(amount: 100.0)
 
               // Deposit them to the receiever
               tokenReceiver.deposit(from: <-mintedVault)
