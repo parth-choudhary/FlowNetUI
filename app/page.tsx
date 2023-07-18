@@ -380,7 +380,7 @@ export default function Home() {
 
   const gallery = images.map((image: any, i: any) => {
     return (
-      <div key={i} className="responsive">
+      <div key={i} className="responsive" style={{width: 200, height: 200}}>
         <div className="gallery">
           <a target="_blank" href="img_5terre.jpg">
             <Image src={image.link} alt="Cinque Terre" width={512} height={512} />
@@ -439,10 +439,10 @@ export default function Home() {
           }
       </main>
       {images.length > 0 && <>
-        <Ticker offset="run-in" speed={5} >
-            {({ index: any }) => (
+        <Ticker offset="run-in" speed={5}>
+            {() => (
                 <>
-                  <div style={{ whiteSpace: "nowrap", display: 'flex', margin: 4 }}>
+                  <div style={{ whiteSpace: "nowrap", display: 'flex', margin: 4, minWidth: 200, minHeight: 200 }}>
                     {gallery}
                   </div>
                 </>
@@ -452,7 +452,7 @@ export default function Home() {
           <Ticker offset="run-in" speed={5} direction="toRight" >
             {({ index: any }) => (
                 <>
-                  <div style={{ whiteSpace: "nowrap", display: 'flex', margin: 4 }}>
+                  <div style={{ whiteSpace: "nowrap", display: 'flex', margin: 4, minWidth: 200, minHeight: 200 }}>
                     {gallery}
                   </div>
                 </>
