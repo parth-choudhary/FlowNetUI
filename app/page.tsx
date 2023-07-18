@@ -155,7 +155,7 @@ export default function Home() {
               let mintedVault <- FlowNetToken.mintTokens(amount: 100)
 
               // Deposit them to the receiever
-              self.tokenReceiver.deposit(from: <-mintedVault)
+              tokenReceiver.deposit(from: <-mintedVault)
               
           }
       }
