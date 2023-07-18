@@ -308,7 +308,7 @@ export default function Home() {
 
   useEffect(() => {
     //fetch nodelist here and set to setNodeList
-    setupAccount();
+    // setupAccount();
     fetchNodes();
     fetchImages();
   }, [])
