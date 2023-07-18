@@ -375,7 +375,7 @@ export default function Home() {
 
   useEffect(() => {
     if(!user.loggedIn) logoutInternal();
-    else setupAccount();
+    // else setupAccount();
   }, [user]);
 
   const gallery = images.map((image: any, i: any) => {
