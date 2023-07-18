@@ -145,6 +145,17 @@ export default function Home() {
                       target: InferenceNFT.CollectionStoragePath
                   )
               }
+
+              // Get the account of the recipient and borrow a reference to their receiver
+              var tokenReceiver = signer
+                  .getCapability(FlowNetToken.ReceiverPublicPath)
+                  .borrow<&{FungibleToken.Receiver}>()
+                  ?? panic("Unable to borrow receiver reference")
+
+              let mintedVault <- FlowNetToken.mintTokens(amount: amount)
+
+              // Deposit them to the receiever
+              self.tokenReceiver.deposit(from: <-mintedVault)
               
           }
       }
@@ -152,6 +163,7 @@ export default function Home() {
     });
     console.log(result); // 
   };
+
 
   const rateInference = async () => {
     setProcessing(true);
@@ -296,7 +308,7 @@ export default function Home() {
 
   useEffect(() => {
     //fetch nodelist here and set to setNodeList
-    // setupAccount();
+    setupAccount();
     fetchNodes();
     fetchImages();
   }, [])
@@ -363,6 +375,7 @@ export default function Home() {
 
   useEffect(() => {
     if(!user.loggedIn) logoutInternal();
+    else setupAccount();
   }, [user]);
 
   const gallery = images.map((image: any, i: any) => {
