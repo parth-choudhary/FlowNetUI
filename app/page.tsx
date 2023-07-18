@@ -230,7 +230,7 @@ export default function Home() {
           execute{
               FlowNet.rateInference(
                   id: ${images.length - 1}, 
-                  rating: ${rating},
+                  rating: ${rating - 1},
                   receiverCapability: self.tokenReciever,
                   rater: self.address
               )
@@ -320,7 +320,7 @@ export default function Home() {
         <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', alignContent: 'center', alignItems: 'center'}}>
           {/* @ts-ignore */}
           {node.data && <span style={{marginRight: 38}}>Address: {node.addr} Cost: {node.data.cost} Active: {node.data.active? 'true': 'false'}</span>}
-          {node.data && <Rate max={10} readOnly={true}  value={node.data.averateRating} />}
+          {node.data && <Rate max={9} readOnly={true}  value={node.data.averateRating} />}
         </div>
       </RadioTile>      
     )
@@ -433,7 +433,7 @@ export default function Home() {
               <Image style={{width: 500, height: 500}} alt='' width='500' height="500" src={image} />
               {/* <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Another Prompt</Button> */}
               <div style={{marginTop: 10}}>Rate the inference: </div>
-              <Rate onChange={(value: any)=> setRating(value)} defaultValue={3} max={10}/>
+              <Rate onChange={(value: any)=> setRating(value)} defaultValue={3} max={9}/>
               <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Rate</Button>
             </div>
           }
