@@ -35,7 +35,7 @@ export default function Home() {
     if(txid){
       const interval = setInterval(() => {
         fcl.tx(txid).onceSealed().then(() => {
-          // fetchImages();
+          fetchImages();
           setTxid(null);
           setProcessing(false);
         });
@@ -217,7 +217,7 @@ export default function Home() {
           }
           execute{
               FlowNet.rateInference(
-                  id: ${txid}, 
+                  id: ${images.length - 1}, 
                   rating: ${rating},
                   receiverCapability: self.tokenReciever,
                   rater: self.address
@@ -302,10 +302,14 @@ export default function Home() {
   }, [])
 
   const nodeSelectionList = nodeList.map((node: any, i) => {
-    // console.log(node);
+    console.log('nides', node);
     return (
-      <RadioTile style={{width: '80vw'}} key={`node-list-${i}`}  icon={<Icon as={VscWorkspaceTrusted} />} label={`${node.name}`} value={`${node.name}-${i}`}>
-        Address: {node.addr}
+      <RadioTile style={{width: '80vw'}} key={`node-list-${i}`}  icon={<Icon as={VscWorkspaceTrusted} />} label={`  ${node.name}`} value={`  ${node.name}-${i}`}>
+        <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', alignContent: 'center', alignItems: 'center'}}>
+          {/* @ts-ignore */}
+          {node.data && <span style={{marginRight: 38}}>Address: {node.addr} Cost: {node.data.cost} Active: {node.data.active? 'true': 'false'}</span>}
+          {node.data && <Rate max={10} readOnly={true}  value={node.data.averateRating} />}
+        </div>
       </RadioTile>      
     )
   })
@@ -322,6 +326,7 @@ export default function Home() {
   }
 
   const anotherPrompt = () => {
+    rateInference();
     setProcessing(false);
     setPrompt('');
     setValue('');
@@ -375,7 +380,7 @@ export default function Home() {
   return (
     <div>      
       <main className={styles.main}>
-        <div id="globeViz" style={{maxWidth: 200, maxHeight: 200}}></div>
+        <h1 id="globeViz" >Generate images using AI nodes hosted on Flow blockchain</h1>
 
       {user.loggedIn ? <>    
           {processing && <><Loader style={{marginTop: 200}} size="lg" content="Processing" /></>}
@@ -412,10 +417,10 @@ export default function Home() {
 
           {showImage && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}>
           {/* {true && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 100}}> */}
-              <Image alt='' width='400' height="400" src={image} />
+              <Image style={{width: 500, height: 500}} alt='' width='500' height="500" src={image} />
               {/* <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Another Prompt</Button> */}
               <div style={{marginTop: 10}}>Rate the inference: </div>
-              <Rate defaultValue={3} max={10}/>
+              <Rate onChange={(value: any)=> setRating(value)} defaultValue={3} max={10}/>
               <Button onClick={anotherPrompt} className='hover' appearance="primary" color="yellow" style={{padding: 12, fontSize: 20, marginTop: 10, fontWeight: 600,  width: '100%', background: '#2F476B', borderRadius: 42}}>Rate</Button>
             </div>
           }

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // assetPrefix: '/',
-  output: "export",
+  // output: "export",
 
     images: {
       // loader: 'akamai',
